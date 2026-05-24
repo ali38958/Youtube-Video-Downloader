@@ -317,7 +317,7 @@ class YouTubeDownloaderApp(tk.Frame):
     
     def handle_search(self, url):
         try:
-            requests.get("https://8.8.8.8", timeout=3)
+            requests.get("https://youtube.com", timeout=3)
         except:
             print("No internet")
             return
