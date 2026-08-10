@@ -10,12 +10,17 @@ except ImportError:
     vlc = None
 
 class VideoPlayer(tb.Frame):
-    def __init__(self, parent, *args, **kwargs):
+    def __init__(self, parent, fullscreen_callback=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
+        
+        self.fullscreen_callback = fullscreen_callback
+        self.is_fullscreen = False
         
         self.instance = None
         self.player = None
         self._is_seeking = False
+        
+        self.configure(takefocus=True)
         
         if vlc is None:
             tb.Label(self, text="VLC is not installed.\nPlease install python-vlc and VLC.", bootstyle="danger").pack(expand=True)
@@ -24,11 +29,10 @@ class VideoPlayer(tb.Frame):
         self.instance = vlc.Instance('--no-xlib')
         self.player = self.instance.media_player_new()
         
-        # Video frame
         self.video_frame = tk.Frame(self, bg="black")
         self.video_frame.pack(fill="both", expand=True)
+        self.video_frame.bind("<Button-1>", lambda e: self.focus_set())
         
-        # Seek bar
         self.seek_var = tb.DoubleVar(value=0)
         self.seek_slider = tb.Scale(self, variable=self.seek_var, from_=0, to=100, orient="horizontal")
         self.seek_slider.pack(fill="x", padx=10, pady=5)
@@ -36,33 +40,38 @@ class VideoPlayer(tb.Frame):
         self.seek_slider.bind("<ButtonPress-1>", self._on_seek_start)
         self.seek_slider.bind("<ButtonRelease-1>", self._on_seek_end)
         
-        # Controls frame
         self.controls = tb.Frame(self)
         self.controls.pack(fill="x", side="bottom", pady=5)
+        self.controls.bind("<Button-1>", lambda e: self.focus_set())
         
-        self.play_btn = tb.Button(self.controls, text="Play", command=self.play, bootstyle="success")
+        self.play_btn = tb.Button(self.controls, text="Play/Pause", command=self.toggle_play_pause, bootstyle="success")
         self.play_btn.pack(side="left", padx=5)
-        
-        self.pause_btn = tb.Button(self.controls, text="Pause", command=self.pause, bootstyle="warning")
-        self.pause_btn.pack(side="left", padx=5)
         
         self.stop_btn = tb.Button(self.controls, text="Stop", command=self.stop, bootstyle="danger")
         self.stop_btn.pack(side="left", padx=5)
         
-        # Volume
         tb.Label(self.controls, text="Vol:").pack(side="left", padx=5)
         self.volume_scale = tb.Scale(self.controls, from_=0, to=100, orient="horizontal", command=self.set_volume)
         self.volume_scale.set(50)
         self.volume_scale.pack(side="left", fill="x", expand=True, padx=5)
         
+        self.fullscreen_btn = tb.Button(self.controls, text="⛶ Fullscreen", command=self.toggle_fullscreen_ui, bootstyle="secondary")
+        self.fullscreen_btn.pack(side="right", padx=5)
+        
         self.time_label = tb.Label(self.controls, text="00:00 / 00:00")
         self.time_label.pack(side="right", padx=10)
+        
+        self.bind("<space>", lambda e: self.toggle_play_pause())
+        self.bind("<f>", lambda e: self.toggle_fullscreen_ui())
+        self.bind("<F>", lambda e: self.toggle_fullscreen_ui())
+        self.bind("<Escape>", lambda e: self.exit_fullscreen())
         
         self._bind_window()
         self._start_update_loop()
 
-    def _bind_window(self):
-        handle = self.video_frame.winfo_id()
+    def _bind_window(self, handle=None):
+        if handle is None:
+            handle = self.video_frame.winfo_id()
         if sys.platform.startswith('linux'):
             self.player.set_xwindow(handle)
         elif sys.platform == "win32":
@@ -75,7 +84,6 @@ class VideoPlayer(tb.Frame):
 
     def _on_seek_end(self, event):
         if self.player:
-            # Scale is 0 to 100, set_position takes 0.0 to 1.0
             pos = self.seek_var.get() / 100.0
             self.player.set_position(pos)
         self._is_seeking = False
@@ -107,6 +115,7 @@ class VideoPlayer(tb.Frame):
         self.play()
         self.volume_scale.set(50)
         self.player.audio_set_volume(50)
+        self.focus_set()
 
     def play(self):
         if self.player:
@@ -115,6 +124,23 @@ class VideoPlayer(tb.Frame):
     def pause(self):
         if self.player:
             self.player.pause()
+            
+    def toggle_play_pause(self):
+        if self.player:
+            state = self.player.get_state()
+            if state == vlc.State.Playing:
+                self.player.pause()
+            else:
+                self.player.play()
+                
+    def toggle_fullscreen_ui(self):
+        if self.fullscreen_callback:
+            self.is_fullscreen = not self.is_fullscreen
+            self.fullscreen_callback(self.is_fullscreen)
+            
+    def exit_fullscreen(self):
+        if self.is_fullscreen:
+            self.toggle_fullscreen_ui()
             
     def stop(self):
         if self.player:

@@ -42,6 +42,7 @@ class Downloader:
         ydl_opts = {
             'quiet': True,
             'no_warnings': True,
+            'extractor_args': {'youtube': {'player_client': ['all']}}
         }
         try:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -95,6 +96,7 @@ class Downloader:
             'quiet': True,
             'no_warnings': True,
             'continuedl': True,
+            'extractor_args': {'youtube': {'player_client': ['all']}}
         }
         
         if task.quality == 'Audio Only':

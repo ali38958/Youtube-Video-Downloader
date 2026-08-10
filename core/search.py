@@ -32,6 +32,7 @@ def search_youtube(query, max_results=15):
         'skip_download': True,
         'quiet': True,
         'no_warnings': True,
+        'extractor_args': {'youtube': {'player_client': ['all']}}
     }
     
     if query.startswith('http://') or query.startswith('https://'):
@@ -60,6 +61,7 @@ def get_stream_url(url):
         'format': 'best',
         'quiet': True,
         'no_warnings': True,
+        'extractor_args': {'youtube': {'player_client': ['all']}}
     }
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:

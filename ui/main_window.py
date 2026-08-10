@@ -39,10 +39,10 @@ class MainWindow:
         self.root.rowconfigure(1, weight=1)
         
         # --- Top Navigation Bar ---
-        top_frame = tb.Frame(self.root, padding=10, bootstyle="dark")
-        top_frame.grid(row=0, column=0, columnspan=2, sticky="ew")
+        self.top_frame = tb.Frame(self.root, padding=10, bootstyle="dark")
+        self.top_frame.grid(row=0, column=0, columnspan=2, sticky="ew")
         
-        search_container = tb.Frame(top_frame, bootstyle="dark")
+        search_container = tb.Frame(self.top_frame, bootstyle="dark")
         search_container.pack(expand=True)
         
         tb.Label(search_container, text="URL / Search:", font=("Helvetica", 12, "bold"), bootstyle="inverse-dark").pack(side="left", padx=10)
@@ -54,10 +54,10 @@ class MainWindow:
         self.search_btn.pack(side="left", padx=5)
         
         # --- Left Panel: Scrollable Results / History ---
-        left_panel = tb.Frame(self.root, padding=10)
-        left_panel.grid(row=1, column=0, sticky="nsew")
+        self.left_panel = tb.Frame(self.root, padding=10)
+        self.left_panel.grid(row=1, column=0, sticky="nsew")
         
-        self.notebook = tb.Notebook(left_panel)
+        self.notebook = tb.Notebook(self.left_panel)
         self.notebook.pack(fill="both", expand=True)
         
         # Results Tab
@@ -74,13 +74,13 @@ class MainWindow:
         self.load_history_ui()
         
         # --- Right Panel: Player & Details ---
-        right_panel = tb.Frame(self.root, padding=10)
-        right_panel.grid(row=1, column=1, sticky="nsew")
+        self.right_panel = tb.Frame(self.root, padding=10)
+        self.right_panel.grid(row=1, column=1, sticky="nsew")
         
-        self.video_player = VideoPlayer(right_panel)
+        self.video_player = VideoPlayer(self.right_panel, fullscreen_callback=self.toggle_fullscreen)
         self.video_player.pack(fill="both", expand=True)
         
-        self.details_frame = tb.Frame(right_panel, padding=10)
+        self.details_frame = tb.Frame(self.right_panel, padding=10)
         self.details_frame.pack(fill="x", pady=10)
         
         self.selected_title_var = tb.StringVar(value="Select a video to view details")
@@ -101,15 +101,29 @@ class MainWindow:
         self.watch_btn.pack(side="left", padx=5)
         
         # --- Bottom Panel: Settings ---
-        bottom_panel = tb.Frame(self.root, padding=10, bootstyle="secondary")
-        bottom_panel.grid(row=2, column=0, columnspan=2, sticky="ew")
+        self.bottom_panel = tb.Frame(self.root, padding=10, bootstyle="secondary")
+        self.bottom_panel.grid(row=2, column=0, columnspan=2, sticky="ew")
         
-        self.loc_btn = tb.Button(bottom_panel, text="Change Folder", bootstyle="info-outline", command=self.change_folder)
+        self.loc_btn = tb.Button(self.bottom_panel, text="Change Folder", bootstyle="info-outline", command=self.change_folder)
         self.loc_btn.pack(side="left", padx=5)
         
         self.status_var = tk.StringVar(value="Ready")
-        tb.Label(bottom_panel, textvariable=self.status_var, bootstyle="inverse-secondary").pack(side="left", padx=10)
+        tb.Label(self.bottom_panel, textvariable=self.status_var, bootstyle="inverse-secondary").pack(side="left", padx=10)
         
+    def toggle_fullscreen(self, is_fullscreen):
+        if is_fullscreen:
+            self.top_frame.grid_remove()
+            self.left_panel.grid_remove()
+            self.bottom_panel.grid_remove()
+            self.details_frame.pack_forget()
+            self.right_panel.configure(padding=0)
+        else:
+            self.top_frame.grid()
+            self.left_panel.grid()
+            self.bottom_panel.grid()
+            self.details_frame.pack(fill="x", pady=10)
+            self.right_panel.configure(padding=10)
+            
     def on_closing(self):
         active = False
         for t in self.downloader.tasks.values():
