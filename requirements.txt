@@ -1,0 +1,5 @@
+yt-dlp>=2024.04.09
+python-vlc>=3.0.20114.43
+ttkbootstrap>=1.10.1
+Pillow>=10.0.0
+requests>=2.31.0
