@@ -112,12 +112,14 @@ class MainWindow:
         
     def toggle_fullscreen(self, is_fullscreen):
         if is_fullscreen:
+            self.root.attributes("-fullscreen", True)
             self.top_frame.grid_remove()
             self.left_panel.grid_remove()
             self.bottom_panel.grid_remove()
             self.details_frame.pack_forget()
             self.right_panel.configure(padding=0)
         else:
+            self.root.attributes("-fullscreen", False)
             self.top_frame.grid()
             self.left_panel.grid()
             self.bottom_panel.grid()
