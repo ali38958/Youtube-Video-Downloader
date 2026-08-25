@@ -7,19 +7,23 @@ HISTORY_FILE = "history.json"
 DEFAULT_SETTINGS = {
     "download_folder": os.path.join(os.path.expanduser("~"), "Downloads"),
     "default_quality": "1080p",
-    "max_concurrent_downloads": 1
+    "max_concurrent_downloads": 1,
+    "theme": "CYBER_DARK"
 }
 
 def load_settings():
     if not os.path.exists(SETTINGS_FILE):
         save_settings(DEFAULT_SETTINGS)
-        return DEFAULT_SETTINGS
+        return DEFAULT_SETTINGS.copy()
     
     try:
         with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
+            data = json.load(f)
+            merged = DEFAULT_SETTINGS.copy()
+            merged.update(data)
+            return merged
     except (json.JSONDecodeError, IOError):
-        return DEFAULT_SETTINGS
+        return DEFAULT_SETTINGS.copy()
 
 def save_settings(settings):
     try:

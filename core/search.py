@@ -58,7 +58,7 @@ def search_youtube(query, max_results=15):
 
 def get_stream_url(url):
     ydl_opts = {
-        'format': 'best',
+        'format': 'best[ext=mp4]/best',
         'quiet': True,
         'no_warnings': True,
         'extractor_args': {'youtube': {'player_client': ['all']}}
@@ -66,7 +66,16 @@ def get_stream_url(url):
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
-            return info.get('url')
+            if 'url' in info:
+                return info['url']
+            if 'formats' in info:
+                for f in reversed(info['formats']):
+                    if f.get('vcodec') != 'none' and f.get('acodec') != 'none' and f.get('url'):
+                        return f['url']
+                for f in reversed(info['formats']):
+                    if f.get('url'):
+                        return f['url']
+            return None
     except Exception as e:
         print(f"Error extracting stream: {e}")
         return None
