@@ -1,1 +1,25 @@
+# Python & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# PyInstaller / Build Artifacts
+build/
+dist/
+*.spec
+*.log
+*.exe
+
+# Application runtime cache & local data
+temp_thumbs/
+history.json
+settings.json
+
+# Environments
+venv/
+.env
+
+# IDE / Agent configs
 .agents/
+.vscode/
+.idea/
